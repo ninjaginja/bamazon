@@ -39,8 +39,15 @@ connection.connect(function(err) {
 });
 
 function displayProducts() {
-
-
+  connection.query("SELECT * FROM products", function(err, results) {
+    if (err) throw err;
+    // For testing/debugging:
+    // console.log(results);
+    
+    for (var i = 0; i < results.length; i++) {
+      console.log(results[i].item_id + " | " + results[i].product_name + " | " + "$" + results[i].price);
+    }
+  });
 }
 
 
@@ -53,6 +60,6 @@ function promptUser() {
       message: "What is the ID of the product you would like to buy?"
     })
     .then(function(answer) {
-      // actions here
+      console.log(answer);
     });
 }
