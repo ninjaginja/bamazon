@@ -67,25 +67,25 @@ function placeOrder() {
       // console.log(answer);
       var product = answer.productID;
       var quantity = answer.units
-      var sql = "SELECT stock_quantity FROM products WHERE item_id = ?";
+      var sql = "SELECT stock_quantity, price FROM products WHERE item_id = ?";
       connection.query(sql, [product], function(err, res) {
         if (err) throw err;
 
-        console.log(res[0].stock_quantity);
         var newQuantity = res[0].stock_quantity - quantity;
+        var orderTotal = res[0].price * quantity;
 
         if (newQuantity > 0) {
           var updateQuery = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
           connection.query(updateQuery, [newQuantity, product], function(err, res) {
             if (err) throw err;
-            console.log(res);
-            console.log("Thank you for your order. Your total is " + )
+            // console.log(res);
+            console.log("Thank you for your order. Your total is $" + orderTotal.toFixed(2) + ".");
+            connection.end();
           })
         } else {
           console.log("Sorry, there is insufficient quantity to fill your order.");
+          connection.end();
         }
       });
-      // connection.end();
     });
-
 }
