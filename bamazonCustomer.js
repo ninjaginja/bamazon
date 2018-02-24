@@ -1,11 +1,3 @@
-// INSTRUCTIONS --------------
-// 5. Then create a Node application called `bamazonCustomer.js`. Running this application will first display all of the items available for sale. Include the ids, names, and prices of products for sale.
-//
-// 6. The app should then prompt users with two messages.
-//
-//    * The first should ask them the ID of the product they would like to buy.
-//    * The second message should ask how many units of the product they would like to buy.
-//
 // 7. Once the customer has placed the order, your application should check if your store has enough of the product to meet the customer's request.
 //
 //    * If not, the app should log a phrase like `Insufficient quantity!`, and then prevent the order from going through.
@@ -36,6 +28,10 @@ connection.connect(function(err) {
   if (err) throw err;
   // Run displayProducts function to show all items available for sale (ids, names, prices)
   displayProducts();
+
+  setTimeout(function(){
+    placeOrder();
+  }, 500);
 });
 
 function displayProducts() {
@@ -43,7 +39,7 @@ function displayProducts() {
     if (err) throw err;
     // For testing/debugging:
     // console.log(results);
-    
+    console.log("ITEMS FOR SALE:");
     for (var i = 0; i < results.length; i++) {
       console.log(results[i].item_id + " | " + results[i].product_name + " | " + "$" + results[i].price);
     }
@@ -52,14 +48,44 @@ function displayProducts() {
 
 
 // function which prompts the user for item details
-function promptUser() {
+function placeOrder() {
   inquirer
-    .prompt({
-      name: "productID",
-      type: "input",
-      message: "What is the ID of the product you would like to buy?"
-    })
+    .prompt([
+      {
+        name: "productID",
+        type: "input",
+        message: "What is the ID of the product you would like to buy?"
+      },
+      {
+        name: "units",
+        type: "input",
+        message: "How many units of this product would you like to purchase?"
+      }
+    ])
     .then(function(answer) {
-      console.log(answer);
+      // For testing/debugging:
+      // console.log(answer);
+      var product = answer.productID;
+      var quantity = answer.units
+      var sql = "SELECT stock_quantity FROM products WHERE item_id = ?";
+      connection.query(sql, [product], function(err, res) {
+        if (err) throw err;
+
+        console.log(res[0].stock_quantity);
+        var newQuantity = res[0].stock_quantity - quantity;
+
+        if (newQuantity > 0) {
+          var updateQuery = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+          connection.query(updateQuery, [newQuantity, product], function(err, res) {
+            if (err) throw err;
+            console.log(res);
+            console.log("Thank you for your order. Your total is " + )
+          })
+        } else {
+          console.log("Sorry, there is insufficient quantity to fill your order.");
+        }
+      });
+      // connection.end();
     });
+
 }
