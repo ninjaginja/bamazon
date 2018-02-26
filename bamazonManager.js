@@ -1,15 +1,3 @@
-// ### Challenge #2: Manager View (Next Level)
-//
-//   * If a manager selects `View Products for Sale`, the app should list every available item: the item IDs, names, prices, and quantities.
-//
-//   * If a manager selects `View Low Inventory`, then it should list all items with an inventory count lower than five.
-//
-//   * If a manager selects `Add to Inventory`, your app should display a prompt that will let the manager "add more" of any item currently in the store.
-//
-//   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
-//
-// - - -
-
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
@@ -30,7 +18,6 @@ var connection = mysql.createConnection({
 // connect to the mysql server and sql database
 connection.connect(function(err) {
   if (err) throw err;
-  // Run function here
 
   inquirer
     .prompt([
@@ -52,6 +39,10 @@ connection.connect(function(err) {
           break;
         case "View Low Inventory": viewLowInventory();
           break;
+        case "Add to Inventory": addInventory();
+          break;
+        case "Add New Product": addNewProduct();
+          break;
       }
     });
 
@@ -67,6 +58,7 @@ function displayProducts() {
     for (var i = 0; i < results.length; i++) {
       console.log(results[i].item_id + " | " + results[i].product_name + " | " + "$" + results[i].price + " | " + results[i].stock_quantity);
     }
+    connection.end();
   });
 }
 
@@ -79,5 +71,82 @@ function viewLowInventory() {
     for (var i = 0; i < results.length; i++) {
       console.log(results[i].item_id + " | " + results[i].product_name + " | " + "$" + results[i].price + " | " + results[i].stock_quantity);
     }
+    connection.end();
   });
+}
+
+function addInventory() {
+  inquirer
+    .prompt([
+      {
+        name: "productID",
+        type: "input",
+        message: "What is the ID of the product for which you would like to add more inventory?"
+      },
+      {
+        name: "units",
+        type: "input",
+        message: "How many of this item would you like to add?"
+      }
+    ])
+    .then(function(answer) {
+      var product = answer.productID;
+      var quantity = parseInt(answer.units);
+      var sql = "SELECT stock_quantity FROM products WHERE item_id = ?";
+      connection.query(sql, [product], function(err, res) {
+
+        var newQuantity = res[0].stock_quantity + quantity;
+        var updateQuery = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+
+        connection.query(updateQuery, [newQuantity, product], function(err, res) {
+          if (err) throw err;
+          console.log("Thank you. The updated quanity for this item is " + newQuantity + ".");
+          connection.end();
+        });
+      });
+    });
+}
+
+function addNewProduct() {
+  inquirer
+    .prompt([
+      {
+        name: "name",
+        type: "input",
+        message: "What is the name of the product that you would like to add?"
+      },
+      {
+        name: "department",
+        type: "input",
+        message: "Which department does this product belong in?"
+      },
+      {
+        name: "price",
+        type: "input",
+        message: "What is the price of this item?"
+      },
+      {
+        name: "quantity",
+        type: "input",
+        message: "How many of this item would you like to add to your inventory?"
+      }
+    ])
+    .then(function(answer) {
+      connection.query(
+        "INSERT INTO products SET ?",
+        {
+          product_name: answer.name,
+          department_name: answer.department,
+          price: parseFloat(answer.price),
+          stock_quantity: parseInt(answer.quantity)
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your product was successfully added to inventory.");
+          connection.end();
+        }
+      );
+
+    });
+
 }

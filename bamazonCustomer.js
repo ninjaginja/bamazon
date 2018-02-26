@@ -57,7 +57,7 @@ function placeOrder() {
       // For testing/debugging:
       // console.log(answer);
       var product = answer.productID;
-      var quantity = answer.units
+      var quantity = answer.units;
       var sql = "SELECT stock_quantity, price FROM products WHERE item_id = ?";
       connection.query(sql, [product], function(err, res) {
         if (err) throw err;
